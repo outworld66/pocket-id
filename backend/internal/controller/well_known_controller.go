@@ -124,6 +124,8 @@ func (wkc *WellKnownController) computeServerMetadata() ([]byte, error) {
 		"require_pushed_authorization_requests":          false,
 		"backchannel_logout_supported":                   true,
 		"backchannel_logout_session_supported":           false,
+		"frontchannel_logout_supported":                  true,
+		"frontchannel_logout_session_supported":          false,
 		"client_id_metadata_document_supported":          cimdSupported,
 		"service_documentation":                          "https://pocket-id.org/docs",
 	}

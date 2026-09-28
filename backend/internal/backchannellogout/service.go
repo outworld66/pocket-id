@@ -77,6 +77,17 @@ type target struct {
 	LogoutURL string
 }
 
+// FrontchannelLogoutURLs returns the registered front-channel endpoints for the user's authorized clients
+func (s *Service) FrontchannelLogoutURLs(ctx context.Context, userID string) ([]string, error) {
+	var urls []string
+	err := s.db.WithContext(ctx).
+		Model(&model.UserAuthorizedOidcClient{}).
+		Joins("JOIN oidc_clients ON oidc_clients.id = user_authorized_oidc_clients.client_id").
+		Where("user_authorized_oidc_clients.user_id = ? AND oidc_clients.frontchannel_logout_url <> ''", userID).
+		Pluck("oidc_clients.frontchannel_logout_url", &urls).Error
+	return urls, err
+}
+
 // targetsQuery selects the authorizations of clients that are registered for back-channel logout
 // Callers narrow it down to the users or the client whose access was revoked
 func (s *Service) targetsQuery(ctx context.Context, tx *gorm.DB) *gorm.DB {

@@ -16,7 +16,28 @@ class WebAuthnService extends APIService {
 		(await this.api.post(`/webauthn/login/finish`, body)).data as User;
 
 	logout = async () => {
-		await this.api.post(`/webauthn/logout`);
+		const { frontchannelLogoutURLs } = (await this.api.post(`/webauthn/logout`)).data as {
+			frontchannelLogoutURLs: string[];
+		};
+		await Promise.all(
+			frontchannelLogoutURLs.map(
+				(url) =>
+					new Promise<void>((resolve) => {
+						const iframe = document.createElement('iframe');
+						iframe.hidden = true;
+						iframe.onload = iframe.onerror = () => {
+							iframe.remove();
+							resolve();
+						};
+						document.body.append(iframe);
+						iframe.src = url;
+						setTimeout(() => {
+							iframe.remove();
+							resolve();
+						}, 5000);
+					})
+			)
+		);
 		userStore.clearUser();
 	};
 

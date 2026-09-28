@@ -21,6 +21,7 @@ type OidcClientDto struct {
 	OidcClientMetaDataDto
 	CallbackURLs                        []string                 `json:"callbackURLs"`
 	LogoutCallbackURLs                  []string                 `json:"logoutCallbackURLs"`
+	FrontchannelLogoutURL               string                   `json:"frontchannelLogoutURL"`
 	BackchannelLogoutURL                string                   `json:"backchannelLogoutURL"`
 	IsPublic                            bool                     `json:"isPublic"`
 	PkceEnabled                         bool                     `json:"pkceEnabled"`
@@ -54,6 +55,7 @@ type OidcClientUpdateDto struct {
 	Description                         string                   `json:"description" binding:"omitempty,max=150" unorm:"nfc"`
 	CallbackURLs                        []string                 `json:"callbackURLs" binding:"omitempty,dive,callback_url_pattern"`
 	LogoutCallbackURLs                  []string                 `json:"logoutCallbackURLs" binding:"omitempty,dive,callback_url_pattern"`
+	FrontchannelLogoutURL               string                   `json:"frontchannelLogoutURL" binding:"omitempty,http_url,backchannel_logout_url"`
 	BackchannelLogoutURL                string                   `json:"backchannelLogoutURL" binding:"omitempty,http_url,backchannel_logout_url"`
 	IsPublic                            bool                     `json:"isPublic"`
 	PkceEnabled                         bool                     `json:"pkceEnabled"`

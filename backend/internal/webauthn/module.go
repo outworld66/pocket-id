@@ -22,6 +22,11 @@ type TokenService interface {
 	GetAuthenticationMethod(token jwt.Token) (string, error)
 }
 
+type LogoutNotifier interface {
+	NotifyUser(context.Context, string)
+	FrontchannelLogoutURLs(context.Context, string) ([]string, error)
+}
+
 type AuditLogger interface {
 	Create(ctx context.Context, event model.AuditLogEvent, ipAddress, userAgent, userID string, data model.AuditLogData, tx *gorm.DB) (model.AuditLog, bool)
 	CreateNewSignInWithEmail(ctx context.Context, ipAddress, userAgent, userID string, tx *gorm.DB, emailLoginNotificationEnabled bool) model.AuditLog
@@ -32,9 +37,10 @@ type Dependencies struct {
 	Actors francishost.Host
 	AppURL string
 
-	Signer    TokenService
-	AuditLog  AuditLogger
-	AppConfig appconfig.AppConfigResolver
+	Signer         TokenService
+	AuditLog       AuditLogger
+	AppConfig      appconfig.AppConfigResolver
+	LogoutNotifier LogoutNotifier
 
 	// CleanupDisabled skips registering the cron jobs that delete expired rows from the database, for example in tests
 	CleanupDisabled bool
@@ -72,7 +78,7 @@ func New(deps Dependencies) (*Module, error) {
 
 	return &Module{
 		service: service,
-		handler: newHandler(service, deps.AppConfig),
+		handler: newHandler(service, deps.AppConfig, deps.LogoutNotifier),
 	}, nil
 }
 

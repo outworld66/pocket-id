@@ -301,6 +301,7 @@ func updateOIDCClientModelFromDto(client *model.OidcClient, input *dto.OidcClien
 	client.Name = input.Name
 	client.CallbackURLs = input.CallbackURLs
 	client.LogoutCallbackURLs = input.LogoutCallbackURLs
+	client.FrontchannelLogoutURL = input.FrontchannelLogoutURL
 	client.BackchannelLogoutURL = input.BackchannelLogoutURL
 	client.IsPublic = input.IsPublic
 	// PKCE is required for public clients

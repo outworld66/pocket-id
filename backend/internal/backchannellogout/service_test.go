@@ -40,6 +40,7 @@ func seedFixtures(t *testing.T, db *gorm.DB) {
 	require.NoError(t, db.Create(&model.OidcClient{
 		Base:                 model.Base{ID: "client-open"},
 		Name:                 "Open Client",
+		FrontchannelLogoutURL: "https://open.example.com/frontchannel-logout",
 		BackchannelLogoutURL: "https://open.example.com/logout",
 	}).Error)
 
@@ -63,6 +64,16 @@ func seedFixtures(t *testing.T, db *gorm.DB) {
 		require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{UserID: "user-1", ClientID: clientID}).Error)
 	}
 	require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{UserID: "user-2", ClientID: "client-restricted"}).Error)
+}
+
+func TestService_FrontchannelLogoutURLs(t *testing.T) {
+	db := testutils.NewDatabaseForTest(t)
+	seedFixtures(t, db)
+	s := &Service{db: db}
+
+	urls, err := s.FrontchannelLogoutURLs(t.Context(), "user-1")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"https://open.example.com/frontchannel-logout"}, urls)
 }
 
 func TestService_TargetsForUsers(t *testing.T) {

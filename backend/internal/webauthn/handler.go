@@ -3,6 +3,7 @@ package webauthn
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,14 +21,16 @@ import (
 )
 
 type handler struct {
-	service   *Service
-	appConfig appconfig.AppConfigResolver
+	service        *Service
+	appConfig      appconfig.AppConfigResolver
+	logoutNotifier LogoutNotifier
 }
 
-func newHandler(service *Service, appConfig appconfig.AppConfigResolver) *handler {
+func newHandler(service *Service, appConfig appconfig.AppConfigResolver, logoutNotifier LogoutNotifier) *handler {
 	return &handler{
-		service:   service,
-		appConfig: appConfig,
+		service:        service,
+		appConfig:      appConfig,
+		logoutNotifier: logoutNotifier,
 	}
 }
 
@@ -178,8 +181,18 @@ func (h *handler) updateCredential(c *gin.Context) error {
 }
 
 func (h *handler) logout(c *gin.Context) error {
+	var frontchannelLogoutURLs []string
+	if h.logoutNotifier != nil {
+		var err error
+		frontchannelLogoutURLs, err = h.logoutNotifier.FrontchannelLogoutURLs(c.Request.Context(), c.GetString("userID"))
+		if err != nil {
+			slog.ErrorContext(c.Request.Context(), "Failed to find OIDC clients for logout notification", slog.Any("error", err))
+			frontchannelLogoutURLs = nil
+		}
+		h.logoutNotifier.NotifyUser(c.Request.Context(), c.GetString("userID"))
+	}
 	cookie.AddAccessTokenCookie(c, 0, "")
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{"frontchannelLogoutURLs": frontchannelLogoutURLs})
 	return nil
 }
 

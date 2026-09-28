@@ -112,13 +112,18 @@ func initServices(
 	}
 
 	svc.customClaimService = service.NewCustomClaimService(db)
+	backchannelLogoutService, err := backchannellogout.NewService(db, svc.jwtService, httpClient, actors)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create back-channel logout service: %w", err)
+	}
 	svc.webauthnModule, err = webauthn.New(webauthn.Dependencies{
-		DB:        db,
-		Actors:    actors,
-		AppURL:    common.EnvConfig.AppURL,
-		Signer:    svc.jwtService,
-		AuditLog:  svc.auditLogService,
-		AppConfig: svc.appConfigService,
+		DB:             db,
+		Actors:         actors,
+		AppURL:         common.EnvConfig.AppURL,
+		Signer:         svc.jwtService,
+		AuditLog:       svc.auditLogService,
+		AppConfig:      svc.appConfigService,
+		LogoutNotifier: backchannelLogoutService,
 		// Disable in test environment
 		CleanupDisabled: common.EnvConfig.AppEnv.IsTest(),
 	})
@@ -173,11 +178,6 @@ func initServices(
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OIDC module: %w", err)
-	}
-
-	backchannelLogoutService, err := backchannellogout.NewService(db, svc.jwtService, httpClient, actors)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create back-channel logout service: %w", err)
 	}
 
 	svc.oidcService, err = service.NewOidcService(db, svc.jwtService, svc.oidcModule.Preview, svc.oidcModule, svc.scimSyncModule, backchannelLogoutService, httpClient, fileStorage)

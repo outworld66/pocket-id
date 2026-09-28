@@ -57,6 +57,7 @@
 		description: existingClient?.description || '',
 		callbackURLs: existingClient?.callbackURLs || [],
 		logoutCallbackURLs: existingClient?.logoutCallbackURLs || [],
+		frontchannelLogoutURL: existingClient?.frontchannelLogoutURL || '',
 		backchannelLogoutURL: existingClient?.backchannelLogoutURL || '',
 		isPublic: existingClient?.isPublic || false,
 		pkceEnabled: existingClient?.pkceEnabled || false,
@@ -85,6 +86,7 @@
 		description: z.string().max(150),
 		callbackURLs: z.array(callbackUrlSchema).default([]),
 		logoutCallbackURLs: z.array(callbackUrlSchema).default([]),
+		frontchannelLogoutURL: z.url().or(z.literal('')),
 		backchannelLogoutURL: z.url().or(z.literal('')),
 		isPublic: z.boolean(),
 		pkceEnabled: z.boolean(),
@@ -349,6 +351,14 @@
 				bind:checked={$inputs.requiresPushedAuthorizationRequests.value}
 			/>
 			<div class="grid grid-cols-1 gap-x-3 gap-y-7 md:grid-cols-2">
+				<FormInput
+					label="Front-Channel Logout URL"
+					description="URL loaded in a hidden browser frame when the user logs out"
+					class="w-full"
+					type="url"
+					bind:input={$inputs.frontchannelLogoutURL}
+					disabled={isCIMDClient}
+				/>
 				<FormInput
 					label={m.backchannel_logout_url()}
 					description={m.backchannel_logout_url_description()}
