@@ -19,6 +19,10 @@ class WebAuthnService extends APIService {
 		const { frontchannelLogoutURLs } = (await this.api.post(`/webauthn/logout`)).data as {
 			frontchannelLogoutURLs: string[];
 		};
+		if (frontchannelLogoutURLs.length === 1) {
+			window.location.assign(frontchannelLogoutURLs[0]);
+			return;
+		}
 		await Promise.all(
 			frontchannelLogoutURLs.map(
 				(url) =>
